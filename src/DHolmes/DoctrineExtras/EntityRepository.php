@@ -73,6 +73,24 @@ class EntityRepository
         return $this->getRepository()->findOneBy($criteria);
     }
     
+    /**
+     * @param array $criteria 
+     * @return boolean
+     */
+    protected function hasBy(array $criteria)
+    {
+        $expr = $this->getExpressionBuilder();
+        $qb = $this->createQueryBuilder('x')
+                   ->select($expr->count('x'))
+                   ->setMaxResults(1);
+        foreach ($criteria as $property => $value)
+        {
+            $qb->andWhere(sprintf('x.%s = :%s', $property, $property))
+               ->setParameter($property, $value);
+        }
+        return $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+    
     /** 
      * @param string $sort
      * @param string $order
