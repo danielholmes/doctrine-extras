@@ -1,0 +1,20 @@
+{
+	"name": "dholmes/doctrine-extras",
+	"type": "library",
+    "description": "Doctrine ORM utilities and tools",
+    "keywords": ["doctrine"],
+    "authors": [
+        {
+            "name": "Daniel Holmes",
+            "email": "daniel@creatio.com.au"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2"
+    },
+    "autoload": {
+        "psr-0": {
+            "DHolmes\DoctrineExtras": "src/"
+        }
+    }
+}
