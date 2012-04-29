@@ -73,10 +73,19 @@ class EntityRepository
         return $this->getRepository()->findOneBy($criteria);
     }
     
-    /** @return array */
-    protected function findAll()
+    /** 
+     * @param string $sort
+     * @param string $order
+     * @return array 
+     */
+    protected function findAll($sort = null, $order = 'ASC')
     {
-        return $this->getRepository()->findAll();
+        $qb = $this->createQueryBuilder('x');
+        if ($sort !== null)
+        {
+            $qb->orderBy(sprintf('x.%s', $sort), $order);
+        }
+        return $qb->getQuery()->execute();
     }
     
     /**
