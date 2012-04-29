@@ -85,8 +85,15 @@ class EntityRepository
                    ->setMaxResults(1);
         foreach ($criteria as $property => $value)
         {
-            $qb->andWhere(sprintf('x.%s = :%s', $property, $property))
-               ->setParameter($property, $value);
+            if ($value === null)
+            {
+                $qb->andWhere(sprintf('x.%s IS NULL', $property));
+            }
+            else
+            {
+                $qb->andWhere(sprintf('x.%s = :%s', $property, $property))
+                   ->setParameter($property, $value);
+            }
         }
         return $qb->getQuery()->getSingleScalarResult() > 0;
     }
