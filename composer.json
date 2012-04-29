@@ -1,6 +1,6 @@
 {
-	"name": "dholmes/doctrine-extras",
-	"type": "library",
+    "name": "dholmes/doctrine-extras",
+    "type": "library",
     "description": "Doctrine ORM utilities and tools",
     "keywords": ["doctrine"],
     "authors": [
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-0": {
-            "DHolmes\DoctrineExtras": "src/"
+            "DHolmes\\DoctrineExtras": "src/"
         }
     }
 }
