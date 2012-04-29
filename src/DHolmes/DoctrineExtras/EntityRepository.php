@@ -108,7 +108,16 @@ class EntityRepository
         $qb = $this->createQueryBuilder('x');
         if ($sort !== null)
         {
-            $qb->orderBy(sprintf('x.%s', $sort), $order);
+            $sortProperty = $sort;
+            $sortAlias = 'x';
+            while (($dotPos = strpos($sortProperty, '.')) !== false)
+            {
+                $parentAlias = $sortAlias;
+                $sortAlias = substr($sortProperty, 0, $dotPos);
+                $sortProperty = substr($sortProperty, $dotPos + 1);
+                $qb->leftJoin(sprintf('%s.%s', $parentAlias, $sortAlias), $sortAlias);
+            }
+            $qb->orderBy(sprintf('%s.%s', $sortAlias, $sortProperty), $order);
         }
         return $qb->getQuery()->execute();
     }
