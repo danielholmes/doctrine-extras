@@ -2,7 +2,7 @@
 
 namespace DHolmes\DoctrineExtras\DBAL\Types;
 
-use Doctrine\DBAL\Types;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 
 class JsonType extends Type
