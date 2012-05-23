@@ -26,7 +26,7 @@ class JsonType extends Type
         }
 
         $value = (is_resource($value)) ? stream_get_contents($value) : $value;
-        $val = json_decode($value);
+        $val = json_decode($value, true);
         if ($val === null && $value != 'null') {
             throw ConversionException::conversionFailed($value, $this->getName());
         }
