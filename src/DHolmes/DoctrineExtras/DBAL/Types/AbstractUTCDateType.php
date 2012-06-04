@@ -1,6 +1,6 @@
 <?php
 
-namespace DHolmes\DoctrineExtras\DBAL\Types\Type;
+namespace DHolmes\DoctrineExtras\DBAL\Types;
 
 use DateTime;
 use DateTimeZone;
