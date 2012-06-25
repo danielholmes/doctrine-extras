@@ -1,13 +1,15 @@
 <?php
 
-namespace DHolmes\DoctrineExtras;
+namespace DHolmes\DoctrineExtras\DBAL\Types;
 
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use DHolmes\LangExtra\Enumeration;
 
-abstract class EnumerationType extends Type
-{    
+abstract class EnumerationCollectionType extends Type
+{
+    const SEPARATOR = "\n";
+
     /**
      * @param array $fieldDeclaration
      * @param AbstractPlatform $platform
@@ -15,7 +17,7 @@ abstract class EnumerationType extends Type
      */
     public function getSqlDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
-        return 'VARCHAR(50)';
+        return 'TEXT';
     }
     
     /** @return string */
@@ -31,8 +33,15 @@ abstract class EnumerationType extends Type
         $phpValue = null;
         if ($value !== null)
         {
-            $class = $this->getClass();
-            $phpValue = $class::get($value);
+            $phpValue = array();
+            if (!empty($value))
+            {
+                foreach (explode(self::SEPARATOR, $value) as $key)
+                {
+                    $class = $this->getClass();
+                    $phpValue[] = $class::get($key);
+                }
+            }
         }
         
         return $phpValue;
@@ -46,12 +55,24 @@ abstract class EnumerationType extends Type
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
         $dbValue = null;
-        $class = $this->getClass();
-        if ($value instanceof $class)
+        if (is_array($value))
         {
-            $dbValue = $value->getKey();
+            $dbValueComps = array();
+            $class = $this->getClass();
+            foreach ($value as $enum)
+            {
+                if ($enum instanceof $class)
+                {
+                    $dbValueComps[] = $enum->getKey();
+                }
+                else
+                {
+                    throw new \Exception(sprintf('Cannot persist value of type "%s', get_class($enum)));
+                }
+            }
+            $dbValue = join(self::SEPARATOR, $dbValueComps);
         }
-        else if ($value !== null)
+        else
         {
             throw new \Exception(sprintf('Cannot persist value of type "%s', get_class($value)));
         }
