@@ -1,6 +1,6 @@
 <?php
 
-namespace DHolmes\DoctrineExtras;
+namespace DHolmes\DoctrineExtras\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\QueryBuilder;
@@ -45,22 +45,23 @@ class EntityRepository
     protected function persistEntityAndFlushIfNoTransaction($entity)
     {
         $this->entityManager->persist($entity);
-        $this->flushEntityManagerIfNoTransaction();
+        $this->flushEntityManagerIfNoTransaction($entity);
     }
     
     /** @param object $entity */
     protected function removeEntityAndFlushIfNoTransaction($entity)
     {
         $this->entityManager->remove($entity);
-        $this->flushEntityManagerIfNoTransaction();
+        $this->flushEntityManagerIfNoTransaction($entity);
     }
     
-    protected function flushEntityManagerIfNoTransaction()
+	/** @param object $entity */
+    protected function flushEntityManagerIfNoTransaction($entity)
     {
         $conn = $this->entityManager->getConnection();
         if (!$conn->isTransactionActive())
         {
-            $this->entityManager->flush();
+            $this->entityManager->flush($entity);
         }
     }
     
