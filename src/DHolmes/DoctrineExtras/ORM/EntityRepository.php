@@ -55,7 +55,7 @@ class EntityRepository
         $this->flushEntityManagerIfNoTransaction($entity);
     }
     
-	/** @param object $entity */
+    /** @param object $entity */
     protected function flushEntityManagerIfNoTransaction($entity)
     {
         $conn = $this->entityManager->getConnection();
@@ -97,6 +97,15 @@ class EntityRepository
             }
         }
         return $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+    
+    /**
+     * @param object $entity 
+     * @return boolean
+     */
+    protected function has($entity)
+    {
+        return $this->entityManager->contains($entity);
     }
     
     /** 
