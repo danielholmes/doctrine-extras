@@ -67,9 +67,9 @@ abstract class AbstractUTCDateType extends DateTimeType
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-	   $format = $this->getPlatformFormatString($platform);
-       
-       if ($value === null) {
+        $format = $this->getPlatformFormatString($platform);
+
+        if ($value === null) {
             return null;
         }
 
