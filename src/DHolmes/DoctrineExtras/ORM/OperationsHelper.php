@@ -11,6 +11,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\PDOSqlite\Driver as PDOSqliteDriver;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\EntityManager;
+use Doctrine\DBAL\DriverManager;
 
 class OperationsHelper
 {
@@ -69,9 +70,16 @@ class OperationsHelper
         {
             $this->createDatabaseWithFixturesAndBackup($entityManager, $orderedFixtures);
         }
-        else
+        else 
         {
-            $this->createDatabaseWithBackup($entityManager);
+            if ($this->isSchemaCacheEnabled)
+            {
+                $this->createDatabaseWithBackup($entityManager);
+            }
+            else
+            {
+                $this->createDatabase($entityManager);
+            }
             $this->loadFixtures($entityManager, $orderedFixtures);
         }
     }
@@ -168,12 +176,12 @@ class OperationsHelper
     private function createDatabaseWithBackup(EntityManager $entityManager)
     {
         $connection = $entityManager->getConnection();
-        $dbParams = $connection->getParams();
-        $dbFilepath = $dbParams['path'];
         
         $schemaBackupFilepath = $this->getBackupFilepath($entityManager, null);
         if ($this->isSchemaCacheEnabled && file_exists($schemaBackupFilepath))
         {
+            $dbParams = $connection->getParams();
+            $dbFilepath = $dbParams['path'];
             if (!@copy($schemaBackupFilepath, $dbFilepath))
             {
                 throw new Exception('Error copying database schema backup');
@@ -182,24 +190,39 @@ class OperationsHelper
         else
         {
             $this->createDatabase($entityManager);
-            if (!@copy($dbFilepath, $schemaBackupFilepath))
-            {
-                throw new Exception('Cannot save schema backup file');
-            }
         }
     }
     
     /** @param EntityManager $entityManager */
     private function createDatabase(EntityManager $entityManager)
     {
+        try
+        {
+            $this->dropDatabase($entityManager);
+        }
+        catch (Exception $e) { /* Doesn't matter because most of the time won't exist */ }
+        $this->executeCreateDatabase($entityManager);
+        $this->createSchema($entityManager);
+    }
+    
+    /** @param EntityManager $entityManager */
+    private function executeCreateDatabase(EntityManager $entityManager)
+    {
         $connection = $entityManager->getConnection();
-        $schemaManager = $connection->getSchemaManager();        
+        $params = $connection->getParams();
         $name = $this->getDatabaseName($entityManager);
         
-        $schemaManager->dropDatabase($name);
-        $schemaManager->createDatabase($name);
-        
-        // Schema
+        // Unset the name because it connects to that database directly otherwise - yet it doesn't
+        // exist
+        unset($params['dbname']);
+
+        $tmpConnection = DriverManager::getConnection($params);
+        $tmpConnection->getSchemaManager()->createDatabase($name);
+    }
+    
+    /** @param EntityManager $entityManager */
+    private function createSchema(EntityManager $entityManager)
+    {
         $metadataFactory = $entityManager->getMetadataFactory();
         $metadatas = $metadataFactory->getAllMetadata();
         $schemaTool = new SchemaTool($entityManager);
@@ -224,16 +247,22 @@ class OperationsHelper
     /** @param EntityManager $entityManager */
     public function tearDownDatabase(EntityManager $entityManager)
     {
-        // Only does rows -> truncate
-        //$purger = new ORMPurger();
-        //$executor = new ORMExecutor($entityManager, $purger);
-        //$executor->purge();
-        
+        $this->disposeConnection($entityManager);
+        $this->dropDatabase($entityManager);
+    }
+    
+    /** @param EntityManager $entityManager */
+    private function disposeConnection(EntityManager $entityManager)
+    {
         $connection = $entityManager->getConnection();
-        $schemaManager = $connection->getSchemaManager();
         $entityManager->close();
         $connection->close();
-        
+    }
+    
+    /** @param EntityManager $entityManager */
+    private function dropDatabase(EntityManager $entityManager)
+    {
+        $schemaManager = $entityManager->getConnection()->getSchemaManager();        
         $name = $this->getDatabaseName($entityManager);
         $schemaManager->dropDatabase($name);
     }
