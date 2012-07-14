@@ -218,15 +218,27 @@ class OperationsHelper
 
         $tmpConnection = DriverManager::getConnection($params);
         $tmpConnection->getSchemaManager()->createDatabase($name);
+        $tmpConnection->close();
+        
+        $this->resetConnection($entityManager);
     }
     
     /** @param EntityManager $entityManager */
     private function createSchema(EntityManager $entityManager)
     {
+        $this->resetConnection($entityManager);
+        
         $metadataFactory = $entityManager->getMetadataFactory();
         $metadatas = $metadataFactory->getAllMetadata();
         $schemaTool = new SchemaTool($entityManager);
         $schemaTool->createSchema($metadatas);
+    }
+    
+    /** @param EntityManager $entityManager */
+    private function resetConnection(EntityManager $entityManager)
+    {
+        $connection = $entityManager->getConnection();
+        $connection->close();
     }
     
     /**
