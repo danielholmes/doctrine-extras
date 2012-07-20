@@ -31,6 +31,12 @@ class EntityRepository
         $this->entityManager = $entityManager;
     }
     
+    /** @return EntityManager */
+    protected function getEntityManager()
+    {
+        return $this->entityManager;
+    }
+    
     /** @return DoctrineEntityRepository */
     private function getRepository()
     {
