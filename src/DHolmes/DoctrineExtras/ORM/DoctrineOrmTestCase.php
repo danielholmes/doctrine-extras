@@ -9,7 +9,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManager;
 use DHolmes\DoctrineExtras\ORM\OperationsHelper;
 
-abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements FixtureInterface
+abstract class DoctrineOrmTestCase extends PHPUnit_Framework_TestCase implements FixtureInterface
 {
     /** @inheritDoc */
     public function load(ObjectManager $manager)
