@@ -20,14 +20,11 @@ class PhakeEntityManager
      */
     public static function verifyWithinTransaction(\Phake_IMock $em, array $calls)
     {
-        // TODO: $calls should really be allowed to be in any order
-        
-        $allVerifications = array_merge(
-            array(\Phake::verify($em)->startTransactional()),
-            $calls,
-            array(\Phake::verify($em)->stopTransactional())
-        );
-        call_user_func_array(array('Phake', 'inOrder'), $allVerifications);
+        foreach ($calls as $call)
+        {
+            \Phake::inOrder(\Phake::verify($em)->startTransactional(), $call);
+            \Phake::inOrder($call, \Phake::verify($em)->stopTransactional());
+        }
     }
 }
 
