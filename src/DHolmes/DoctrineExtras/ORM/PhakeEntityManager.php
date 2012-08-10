@@ -10,7 +10,7 @@ class PhakeEntityManager
     public static function createWorkingMock()
     {
         $em = \Phake::mock('DHolmes\DoctrineExtras\ORM\MockEntityManager');
-        \Phake::when($em)->transactional(\Phake::anyParameters())->thenCallParent();
+	\Phake::when($em)->transactional(\Phake::anyParameters())->thenCallParent();
         return $em;
     }
     
@@ -22,22 +22,19 @@ class PhakeEntityManager
     {
         foreach ($calls as $call)
         {
-            \Phake::inOrder(\Phake::verify($em)->startTransactional(), $call);
-            \Phake::inOrder($call, \Phake::verify($em)->stopTransactional());
+            \Phake::inOrder(\Phake::verify($em)->beginTransaction(), $call);
+            \Phake::inOrder($call, \Phake::verify($em)->commit());
         }
     }
 }
 
 abstract class MockEntityManager extends EntityManager
-{
-    abstract public function startTransactional();
-    abstract public function stopTransactional();
-    
+{    
     public function transactional(\Closure $op)
     {
-        $this->startTransactional();
+        $this->beginTransaction();
         $return = $op($this);
-        $this->stopTransactional();
+        $this->commit();
         return $return;
     }
 }
