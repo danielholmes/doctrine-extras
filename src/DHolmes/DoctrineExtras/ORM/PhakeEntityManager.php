@@ -23,7 +23,11 @@ class PhakeEntityManager
         foreach ($calls as $call)
         {
             \Phake::inOrder(\Phake::verify($em)->beginTransaction(), $call);
-            \Phake::inOrder($call, \Phake::verify($em)->commit());
+            \Phake::inOrder(
+                $call,
+                \Phake::verify($em)->flush(),
+                \Phake::verify($em)->commit()
+            );
         }
     }
 }
@@ -34,6 +38,7 @@ abstract class MockEntityManager extends EntityManager
     {
         $this->beginTransaction();
         $return = $op($this);
+        $this->flush();
         $this->commit();
         return $return;
     }
