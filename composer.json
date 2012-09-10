@@ -12,6 +12,9 @@
     "require": {
         "php": ">=5.3.2"
     },
+    "require-dev": {
+        "doctrine/orm": "2.2.3"
+    },
     "autoload": {
         "psr-0": {
             "DHolmes\\DoctrineExtras": "src/"

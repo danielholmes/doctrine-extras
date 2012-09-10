@@ -2,8 +2,6 @@
 
 namespace DHolmes\DoctrineExtras\ORM;
 
-use Exception;
-use ReflectionClass;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\Common\DataFixtures\Loader;
@@ -111,7 +109,7 @@ class OperationsHelper
         {
             if (!@copy($backupFilepath, $dbFilepath))
             {
-                throw new Exception('Error copying database backup');
+                throw new \RuntimeException('Error copying database backup');
             }
         }
         else
@@ -121,7 +119,7 @@ class OperationsHelper
             
             if (!@copy($dbFilepath, $backupFilepath))
             {
-                throw new Exception('Cannot save schema and fixtures backup file');
+                throw new \RuntimeException('Cannot save schema and fixtures backup file');
             }
         }
     }
@@ -161,7 +159,7 @@ class OperationsHelper
                 $fixtureClass = get_class($fixture);
                 if (!isset($this->fixtureIdCache[$fixtureClass]))
                 {
-                    $reflection = new ReflectionClass($fixtureClass);
+                    $reflection = new \ReflectionClass($fixtureClass);
                     $fixtureId = $fixtureClass . '::' . $reflection->getEndLine();
                     $this->fixtureIdCache[$fixtureClass] = $fixtureId;
                 }
@@ -184,12 +182,21 @@ class OperationsHelper
             $dbFilepath = $dbParams['path'];
             if (!@copy($schemaBackupFilepath, $dbFilepath))
             {
-                throw new Exception('Error copying database schema backup');
+                throw new \RuntimeException('Error copying database schema backup');
             }
         }
         else
         {
             $this->createDatabase($entityManager);
+            if ($this->isSchemaCacheEnabled)
+            {
+                $dbParams = $connection->getParams();
+                $dbFilepath = $dbParams['path'];
+                if (!@copy($dbFilepath, $schemaBackupFilepath))
+                {
+                    throw new \RuntimeException('Error copying database schema backup');
+                }
+            }
         }
     }
     
@@ -200,7 +207,7 @@ class OperationsHelper
         {
             $this->dropDatabase($entityManager);
         }
-        catch (Exception $e) { /* Doesn't matter because most of the time won't exist */ }
+        catch (\Exception $e) { /* Doesn't matter because most of the time won't exist */ }
         $this->executeCreateDatabase($entityManager);
         $this->createSchema($entityManager);
     }
