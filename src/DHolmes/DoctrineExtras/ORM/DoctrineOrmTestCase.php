@@ -1,6 +1,6 @@
 <?php
 
-namespace DHolmes\TestExtras\Database;
+namespace DHolmes\DoctrineExtras\ORM;
 
 use PHPUnit_Framework_TestCase;
 use InvalidArgumentException;
@@ -9,7 +9,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManager;
 use DHolmes\DoctrineExtras\ORM\OperationsHelper;
 
-abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements FixtureInterface
+abstract class DoctrineOrmTestCase extends PHPUnit_Framework_TestCase implements FixtureInterface
 {
     /** @inheritDoc */
     public function load(ObjectManager $manager)
@@ -17,14 +17,14 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
         $entities = $this->getTestEntities();
         $allEntities = $this->extractAllEntitiesToPersist($entities);
         array_walk($allEntities, array($manager, 'persist'));
-
+        
         $manager->flush();
     }
-
+    
     /**
      * This is added to help test readability. The idea is that this method would expand all entity
      * relations that would otherwise need to be persisted explicitly. e.g.
-     *
+     * 
      * protected function getTestEntities()
      * {
      *     return array(new Person(new Country('Australia')));
@@ -42,31 +42,31 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
      * }
      *
      * extractAllEntitiesToPersist would usually go in a data source shared abstract test case
-     *
+     * 
      * @param array $entities
-     * @return array
+     * @return array 
      */
     protected function extractAllEntitiesToPersist(array $entities)
     {
         return $entities;
     }
-
+    
     /** @return array */
     abstract protected function getTestEntities();
-
+    
     /** @var OperationsHelper */
     private $operationsHelper;
-
+    
     /** @return OperationsHelper */
     private function getOperationsHelper()
     {
         if ($this->operationsHelper === null)
         {
             $this->operationsHelper = $this->createOperationsHelper();
-        }
+        }        
         return $this->operationsHelper;
     }
-
+    
     /** @return OperationsHelper */
     protected function createOperationsHelper()
     {
@@ -74,23 +74,23 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
         $helper->setIsSchemaCacheEnabled(true);
         // Cannot really compare entities properly with this enabled because actual entity not 
         // inserted in session. Might be possible if compare contents (excluding id and timestamps?)
-        // but that could be inaccurate
+        // but that could be innacurate
         $helper->setIsFixturesCacheEnabled(false);
         return $helper;
     }
-
+    
     /** @return EntityManager */
     abstract protected function getEntityManager();
-
+    
     protected function setUpDatabase()
     {
         $entityManager = $this->getEntityManager();
         $this->getOperationsHelper()->setUpDatabase($entityManager, array($this));
     }
-
+    
     /**
      * @param object $entity
-     * @return object
+     * @return object 
      */
     protected function ensureEntityManaged($entity)
     {
@@ -103,7 +103,7 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
         }
         return $merged;
     }
-
+    
     /**
      * @param object $expectedEntity
      * @param object $entity 
@@ -111,7 +111,7 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
     protected function assertSameEntities($expectedEntity, $entity)
     {
         $entityManager = $this->getEntityManager();
-
+        
         if ($expectedEntity !== null)
         {
             $expectedEntity = $entityManager->merge($expectedEntity);
@@ -120,15 +120,15 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
         {
             $entity = $entityManager->merge($entity);
         }
-
+        
         $expectedDesc = $this->getEntityDescription($expectedEntity);
         $entityDesc = $this->getEntityDescription($entity);
-
+        
         $assertMessage = sprintf('Entities not the same:' . "\n" . '  %s' . "\n" . '  %s', 
                             $expectedDesc, $entityDesc);
         $this->assertSame($expectedEntity, $entity, $assertMessage);
     }
-
+    
     /**
      * @param object $entity
      * @return string
@@ -146,7 +146,7 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
         }
         return $entityString;
     }
-
+    
     /**
      * @param array $expected
      * @param \Traversable|array $actual
@@ -179,7 +179,7 @@ abstract class DoctrineORMTestCase extends PHPUnit_Framework_TestCase implements
 
         $this->assertEquals($expectedIds, $actualIds);*/
     }
-
+    
     protected function tearDownDatabase()
     {
         $entityManager = $this->getEntityManager();
