@@ -19,14 +19,14 @@ class OperationsHelper
     private $isFixturesCacheEnabled;
     /** @var array */
     private $fixtureIdCache;
-    
+
     public function __construct()
     {
         $this->isSchemaCacheEnabled = false;
         $this->isFixturesCacheEnabled = false;
         $this->fixtureIdCache = array();
     }
-    
+
     /** @return boolean */
     public function getIsSchemaCacheEnabled()
     {
@@ -48,7 +48,7 @@ class OperationsHelper
     {
         $this->isFixturesCacheEnabled = $isFixturesCacheEnabled;
     }
-    
+
     /**
      * @param EntityManager $entityManager
      * @param array $fixtures
@@ -56,19 +56,19 @@ class OperationsHelper
     public function setUpDatabase(EntityManager $entityManager, array $fixtures = array())
     {
         $connection = $entityManager->getConnection();
-        
+
         $loader = new Loader();
         foreach ($fixtures as $fixture)
         {
             $loader->addFixture($fixture);
         }
         $orderedFixtures = $loader->getFixtures();
-        
+
         if ($this->isFixturesCacheEnabled && $this->isFileBasedSqlite($connection))
         {
             $this->createDatabaseWithFixturesAndBackup($entityManager, $orderedFixtures);
         }
-        else 
+        else
         {
             if ($this->isSchemaCacheEnabled)
             {
@@ -81,7 +81,7 @@ class OperationsHelper
             $this->loadFixtures($entityManager, $orderedFixtures);
         }
     }
-    
+
     /**
      * @param Connection $connection
      * @return boolean
@@ -89,15 +89,15 @@ class OperationsHelper
     private function isFileBasedSqlite(Connection $connection)
     {
         $dbParams = $connection->getParams();
-        return $connection->getDriver() instanceof PDOSqlite\Driver && 
+        return $connection->getDriver() instanceof PDOSqlite\Driver &&
             (!isset($dbParams['memory']) || !$dbParams['memory']);
     }
-    
+
     /**
      * @param EntityManager $entityManager
-     * @param array $fixtures 
+     * @param array $fixtures
      */
-    private function createDatabaseWithFixturesAndBackup(EntityManager $entityManager, 
+    private function createDatabaseWithFixturesAndBackup(EntityManager $entityManager,
         array $fixtures = null)
     {
         $connection = $entityManager->getConnection();
@@ -116,14 +116,14 @@ class OperationsHelper
         {
             $this->createDatabaseWithBackup($entityManager);
             $this->loadFixtures($entityManager, $fixtures);
-            
+
             if (!@copy($dbFilepath, $backupFilepath))
             {
                 throw new \RuntimeException('Cannot save schema and fixtures backup file');
             }
         }
     }
-    
+
     /**
      * @param EntityManager $entityManager
      * @param array $fixtures
@@ -134,15 +134,15 @@ class OperationsHelper
         $connection = $entityManager->getConnection();
         $dbParams = $connection->getParams();
         $dbFilepath = $dbParams['path'];
-        
+
         $metadataFactory = $entityManager->getMetadataFactory();
         $metadatas = $metadataFactory->getAllMetadata();
-        
+
         $dbId = $this->getDatabaseId($metadatas, $fixtures);
-    
+
         return dirname($dbFilepath) . '/' . basename($dbFilepath) . '-' . $dbId . '.db';
     }
-    
+
     /**
      * @param array $metadatas
      * @param array $fixtures
@@ -165,16 +165,16 @@ class OperationsHelper
                 }
                 $idBase .= $this->fixtureIdCache[$fixtureClass] . ' ';
             }
-        }        
-        
+        }
+
         return md5($idBase);
     }
-    
+
     /** @param EntityManager $entityManager */
     private function createDatabaseWithBackup(EntityManager $entityManager)
     {
         $connection = $entityManager->getConnection();
-        
+
         $schemaBackupFilepath = $this->getBackupFilepath($entityManager, null);
         if ($this->isSchemaCacheEnabled && file_exists($schemaBackupFilepath))
         {
@@ -199,7 +199,7 @@ class OperationsHelper
             }
         }
     }
-    
+
     /** @param EntityManager $entityManager */
     private function createDatabase(EntityManager $entityManager)
     {
@@ -211,14 +211,14 @@ class OperationsHelper
         $this->executeCreateDatabase($entityManager);
         $this->createSchema($entityManager);
     }
-    
+
     /** @param EntityManager $entityManager */
     private function executeCreateDatabase(EntityManager $entityManager)
     {
         $connection = $entityManager->getConnection();
         $params = $connection->getParams();
         $name = $this->getDatabaseName($entityManager);
-        
+
         // Unset the name because it connects to that database directly otherwise - yet it doesn't
         // exist
         unset($params['dbname']);
@@ -226,28 +226,28 @@ class OperationsHelper
         $tmpConnection = DriverManager::getConnection($params);
         $tmpConnection->getSchemaManager()->createDatabase($name);
         $tmpConnection->close();
-        
+
         $this->resetConnection($entityManager);
     }
-    
+
     /** @param EntityManager $entityManager */
     private function createSchema(EntityManager $entityManager)
     {
         $this->resetConnection($entityManager);
-        
+
         $metadataFactory = $entityManager->getMetadataFactory();
         $metadatas = $metadataFactory->getAllMetadata();
         $schemaTool = new SchemaTool($entityManager);
         $schemaTool->createSchema($metadatas);
     }
-    
+
     /** @param EntityManager $entityManager */
     private function resetConnection(EntityManager $entityManager)
     {
         $connection = $entityManager->getConnection();
         $connection->close();
     }
-    
+
     /**
      * @param EntityManager $entityManager
      * @param array $fixtures
@@ -262,14 +262,14 @@ class OperationsHelper
             $executor->execute($fixtures, true);
         }
     }
-    
+
     /** @param EntityManager $entityManager */
     public function tearDownDatabase(EntityManager $entityManager)
     {
-        $this->disposeConnection($entityManager);
         $this->dropDatabase($entityManager);
+        $this->disposeConnection($entityManager);
     }
-    
+
     /** @param EntityManager $entityManager */
     private function disposeConnection(EntityManager $entityManager)
     {
@@ -277,15 +277,15 @@ class OperationsHelper
         $entityManager->close();
         $connection->close();
     }
-    
+
     /** @param EntityManager $entityManager */
     private function dropDatabase(EntityManager $entityManager)
     {
-        $schemaManager = $entityManager->getConnection()->getSchemaManager();        
+        $schemaManager = $entityManager->getConnection()->getSchemaManager();
         $name = $this->getDatabaseName($entityManager);
         $schemaManager->dropDatabase($name);
     }
-    
+
     /**
      * @param EntityManager $entityManager
      * @return string
@@ -305,7 +305,7 @@ class OperationsHelper
         }
         return $name;
     }
-    
+
     /** @return OperationsHelper */
     public static function createWithCachedSchemaAndFixtures()
     {
