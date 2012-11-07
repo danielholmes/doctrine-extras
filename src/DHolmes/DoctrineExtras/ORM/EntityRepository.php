@@ -146,6 +146,59 @@ class EntityRepository
     {
         return $this->getRepository()->find($id);
     }
+
+    /**
+     * @param QueryBuilder $qb
+     * @return int
+     */
+    protected function countQueryBuilder(QueryBuilder $qb)
+    {
+        // TODO: Maybe need to verify here that it is a relevant QB for counting
+        // TODO: Fnid alias a different way, getRootAlias deprecated
+        $alias = $qb->getRootAlias();
+        return (int)$qb->select(sprintf('COUNT(%s)', $alias))
+                        ->resetDQLPart('orderBy')
+                        ->getQuery()
+                        ->getSingleScalarResult();
+
+    }
+
+    /**
+     * @param \Doctrine\ORM\QueryBuilder $qb
+     * @param int $offset
+     * @param int|null $limit
+     * @return array
+     */
+    protected function sliceQueryBuilder(QueryBuilder $qb, $offset = 0, $limit = null)
+    {
+        if ($offset > 0 || $limit !== null)
+        {
+            $qb->setFirstResult($offset);
+            if ($limit === null)
+            {
+                // From MySQL docs, but should work okay on other platforms as well
+                $qb->setMaxResults(9999999999);
+            }
+            else
+            {
+                $qb->setMaxResults($limit);
+            }
+        }
+
+        return $qb->getQuery()->execute();
+    }
+
+    /**
+     * @param QueryBuilder $qb
+     * @param int $offset
+     * @param int $limit
+     * @return \Iterator
+     */
+    protected function sliceQueryBuilderAsIterator(QueryBuilder $qb, $offset = 0, $limit = null)
+    {
+        $results = $this->sliceQueryBuilder($qb, $offset, $limit);
+        return new \ArrayIterator($results);
+    }
     
     /**
      * @param string $alias
