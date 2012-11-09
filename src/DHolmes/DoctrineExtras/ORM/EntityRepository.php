@@ -7,6 +7,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
 use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Doctrine\ORM\EntityRepository as DoctrineEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 // TODO: IteratorAggregate support. Probably better via another object, i.e. RepositoryIterator
 // TODO: arrayaccess
@@ -153,14 +154,8 @@ class EntityRepository
      */
     protected function countQueryBuilder(QueryBuilder $qb)
     {
-        // TODO: Maybe need to verify here that it is a relevant QB for counting
-        // TODO: Fnid alias a different way, getRootAlias deprecated
-        $alias = $qb->getRootAlias();
-        return (int)$qb->select(sprintf('COUNT(%s)', $alias))
-                        ->resetDQLPart('orderBy')
-                        ->getQuery()
-                        ->getSingleScalarResult();
-
+        $paginator = new Paginator($qb->getQuery());
+        return $paginator->count();
     }
 
     /**
@@ -226,3 +221,4 @@ class EntityRepository
         return $query->execute(array(), Query::HYDRATE_SINGLE_SCALAR);
     }
 }
+
