@@ -15,7 +15,7 @@ abstract class EnumerationType extends Type
      */
     public function getSqlDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
-        return 'VARCHAR(50)';
+        return $platform->getVarcharTypeDeclarationSQL(array('length' => 50));
     }
     
     /** @return string */

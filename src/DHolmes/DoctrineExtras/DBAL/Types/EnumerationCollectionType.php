@@ -17,7 +17,7 @@ abstract class EnumerationCollectionType extends Type
      */
     public function getSqlDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
-        return 'TEXT';
+        return $platform->getClobTypeDeclarationSQL($fieldDeclaration);
     }
     
     /** @return string */
@@ -48,9 +48,10 @@ abstract class EnumerationCollectionType extends Type
     }
 
     /**
-     * @param Enumeration $value
+     * @param mixed $value
      * @param AbstractPlatform $platform
      * @return string
+     * @throws \InvalidArgumentException
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
@@ -67,16 +68,17 @@ abstract class EnumerationCollectionType extends Type
                 }
                 else
                 {
-                    throw new \Exception(sprintf('Cannot persist value of type "%s', get_class($enum)));
+                    $type = is_object($enum) ? get_class($enum) : gettype($enum);
+                    throw new \InvalidArgumentException(sprintf('Cannot persist value of type "%s"', $type));
                 }
             }
             $dbValue = join(self::SEPARATOR, $dbValueComps);
         }
         else
         {
-            throw new \Exception(sprintf('Cannot persist value of type "%s', get_class($value)));
+            throw new \InvalidArgumentException(sprintf('Expecting array (found type %s)', $value));
         }
-        
+
         return $dbValue;
     }
 }
