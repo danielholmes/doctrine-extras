@@ -13,10 +13,10 @@ class PhakeEntityManager
 	\Phake::when($em)->transactional(\Phake::anyParameters())->thenCallParent();
         return $em;
     }
-    
+
     /**
      * @param \Phake_IMock $em
-     * @param array $calls 
+     * @param array $calls
      */
     public static function verifyWithinTransaction(\Phake_IMock $em, array $calls)
     {
@@ -33,8 +33,8 @@ class PhakeEntityManager
 }
 
 abstract class MockEntityManager extends EntityManager
-{    
-    public function transactional(\Closure $op)
+{
+    public function transactional($op)
     {
         $this->beginTransaction();
         $return = $op($this);
