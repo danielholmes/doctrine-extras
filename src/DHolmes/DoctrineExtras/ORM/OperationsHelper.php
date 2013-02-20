@@ -89,7 +89,7 @@ class OperationsHelper
     private function isFileBasedSqlite(Connection $connection)
     {
         $dbParams = $connection->getParams();
-        return $connection->getDriver() instanceof PDOSqlite\Driver &&
+        return $connection->getDriver() instanceof PDOSqliteDriver &&
             (!isset($dbParams['memory']) || !$dbParams['memory']);
     }
 
